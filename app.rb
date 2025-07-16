@@ -139,6 +139,7 @@ end
 
 
 post '/audio_upload' do
+  Dir.mkdir('public/uploads') unless Dir.exist?('public/uploads')
      emotion_id = session[:current_emotion_id]
     @emotion = current_user.emotions.find_by(id: emotion_id)
     audio=params[:audio]
