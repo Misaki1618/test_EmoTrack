@@ -93,6 +93,7 @@ post '/upload/:filename' do
                         d: "a",
                         s: "a"
                     )
+                    File.delete(filepath) if File.exist?(filepath)
                 elsif response["status"]=="completed"
                     segments=response["sentiment_analysis"]["segments"]
                 
@@ -122,7 +123,7 @@ post '/upload/:filename' do
                         e: energy,
                         d: dissatisfaction
                     )
-                   
+                    File.delete(filepath) if File.exist?(filepath)
                 end
                 
                 
