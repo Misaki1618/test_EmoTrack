@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EmoTrack</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script src="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.css">
+  <style>
+    body {
+      background-color: #1f2157;
+      margin: 0;
+      font-family: sans-serif;
+    }
+
+    .container {
+      padding: 20px;
+      padding-bottom: 90px; /* ナビバー分の余白 */
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+    }
+
+    .status-card {
+      margin-top: 20px;
+      background: linear-gradient(135deg, #ff7e5f, #feb47b);
+      padding: 10px;
+      border-radius: 10px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      font-size: 18px;
+    }
+
+    .chart-title {
+      color: white;
+      margin-top: 30px;
+      font-size: 18px;
+    }
+
+    .ct-chart {
+      margin-top: 10px;
+      height: 200px;
+      margin-left: -20px;
+    }
+
+    /* Chartist グラフスタイル（home.erbと一致） */
+    .ct-series-a .ct-line, .ct-series-a .ct-point {
+      stroke: #00bfff;
+    }
+    .ct-series-a .ct-area {
+      fill: rgba(0, 191, 255, 0.5);
+    }
+    .ct-axis .ct-label {
+      fill: white;
+      font-size: 12px;
+    }
+    .ct-grid {
+      stroke: #7fb3d5;
+    }
+
+    .timeline {
+      margin-top: 30px;
+    }
+
+    .timeline-title {
+      color: white;
+      font-size: 18px;
+    }
+
+    /* タイムラインカード（home.erbの.card1と一致） */
+    .card1 {
+      display: flex;
+      flex-direction: row;
+      background-color: #35376c;
+      width: 100%;
+      border-radius: 10px;
+      margin-top: 10px;
+      color: white;
+    }
+
+    .emotion {
+      margin-left: 10px;
+      white-space: nowrap;
+      margin-top: 3px;
+    }
+
+    .pp {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      margin-left: 10px;
+      margin-top: 20px;
+    }
+
+    .level {
+      margin-top: 0px;
+      padding-top: 0;
+      margin-left: 25px;
+    }
+
+    .diary {
+      display: block;
+    }
+
+    .date {
+      margin-left: 40px;
+    }
+
+    .content {
+      margin-left: 40px;
+      margin-top: -10px;
+      word-wrap: break-word;
+      word-break: break-all;
+      white-space: normal;
+      margin-right:10px;
+    }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      height: 60px;
+      background-color: #35376c;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      border-top: 1px solid #1f2157;
+      z-index: 10;
+    }
+
+    .nav-icon {
+      color: white;
+      font-size: 36px;
+      text-decoration: none;
+    }
+
+    .add-button-wrapper {
+      position: relative;
+      top: -20px;
+    }
+
+    .add-button-circle {
+      background-color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      border: none;
+    }
+
+    .add-button-icon {
+      font-size: 36px;
+      color: #35376c;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>EmoTrack</h2>
+    </div>
+
+    <div class="status-card">
+      <span><%= Time.now.in_time_zone('Asia/Tokyo').strftime('%Y/%m/%d') %> のストレス度</span>
+      <span>
+        <% if @emotions.present? && @emotions.order(id: :desc).first.status == "completed" && @emotions.order(id: :desc).first.created_at.in_time_zone("Asia/Tokyo").to_date == Time.now.in_time_zone('Asia/Tokyo').to_date %>
+          <%= @emotions.where(status:"completed").order(id: :desc).first.s %>
+        <% else %>
+          未計測
+        <% end %>
+      </span>
+    </div>
+
+    <p class="chart-title">ストレスの変化（1週間）</p>
+    <div class="ct-chart ct-perfect-fourth"></div>
+
+    <script>
+      let labels = [];
+      let series = [];
+      <% c = 0 %>
+      <% if @emotions.where(status:"completed").count < 7 %>
+        <% @emotions.where(status:"completed").each do |emotion| %>
+          <% c += 1 %>
+          labels.push(<%= c %>);
+          series.push(<%= emotion.stress %>);
+        <% end %>
+      <% else %>
+        <% @emotions.where(status:"completed").order(id: :desc).each do |emotion| %>
+          <% if c < 7 %>
+            <% c += 1 %>
+            labels.push(<%= c %>);
+            series.unshift(<%= emotion.stress %>);
+          <% end %>
+        <% end %>
+      <% end %>
+
+      new Chartist.Line('.ct-chart', {
+        labels: labels,
+        series: [series]
+      }, {
+        low: 0,
+        high: 100,
+        showArea: true
+      });
+    </script>
+
+    <div class="timeline">
+      <p class="timeline-title">記録一覧</p>
+      <% @timeline.where(status:"completed").order(id: :desc).each do |emotion| %>
+        <div class="card1">
+          <div class="emotion">
+            <p class="pp">ストレス度</p>
+            <h3 class="level"><%= emotion.s %></h3>
+          </div>
+          <div class="diary">
+            <h3 class="date"><%= emotion.created_at.in_time_zone("Asia/Tokyo").strftime('%Y/%m/%d') %></h3>
+            <p class="content"><%= emotion.diary %></p>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <a href="/home" class="nav-icon"><span class="material-symbols-outlined" style="font-size:35px;">home</span></a>
+    
+    <div class="add-button-wrapper">
+      <form action="/emotion" method="get">
+        <button type="submit" class="add-button-circle">
+          <span class="material-symbols-outlined add-button-icon">add</span>
+        </button>
+      </form>
+    </div>
+
+    <a href="/statistics" class="nav-icon"><span class="material-symbols-outlined" style="font-size:35px;">query_stats</span></a>
+  </div>
+</body>
+</html>

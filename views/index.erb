@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>記録 - EmoTrack</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <style>
+    body {
+      background-color: #1f2157;
+      margin: 0;
+      font-family: sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* トースト通知のスタイル */
+    .toast-notification {
+      position: fixed;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, rgba(255, 126, 95, 0.95), rgba(254, 180, 123, 0.95));
+      color: white;
+      padding: 20px 25px;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+      z-index: 1000;
+      width: 90%;
+      max-width: 400px;
+      transition: top 0.5s ease-out;
+      backdrop-filter: blur(10px);
+    }
+
+    .toast-notification.show {
+      top: 20px;
+    }
+
+    .toast-content {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+    }
+
+    .toast-icon {
+      font-size: 24px;
+      flex-shrink: 0;
+    }
+
+    .toast-text {
+      flex: 1;
+      line-height: 1.5;
+    }
+
+    .toast-title {
+      font-weight: bold;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    .toast-message {
+      font-size: 14px;
+      opacity: 0.95;
+    }
+
+    .toast-list {
+      margin: 5px 0 0 0;
+      padding-left: 20px;
+    }
+
+    .toast-list li {
+      margin: 3px 0;
+      font-size: 13px;
+    }
+
+    .container {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    .back-button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .back-button:active {
+      opacity: 0.7;
+    }
+
+    .selected-emotion {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+      border-radius: 15px;
+      padding: 15px 20px;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      backdrop-filter: blur(10px);
+    }
+
+    .emotion-icon {
+      font-size: 32px;
+    }
+
+    .emotion-icon.satisfied {
+      background: linear-gradient(135deg, #ff7e5f, #feb47b);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .emotion-icon.dissatisfied {
+      background: linear-gradient(135deg, #00bfff, #7ed3ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .emotion-text {
+      color: white;
+    }
+
+    .emotion-label {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 5px;
+    }
+
+    .emotion-value {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .record-section {
+      background-color: #35376c;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 30px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .section-title {
+      color: white;
+      font-size: 18px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .voice-controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .voice-button {
+      background: linear-gradient(135deg, #ff7e5f, #feb47b);
+      border: none;
+      border-radius: 25px;
+      padding: 12px 24px;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .voice-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 126, 95, 0.4);
+    }
+
+    .voice-button:active {
+      transform: translateY(0);
+    }
+
+    .voice-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .voice-button .material-symbols-outlined {
+      font-size: 20px;
+    }
+
+    .text-input-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .text-input {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      padding: 15px;
+      color: white;
+      font-size: 16px;
+      resize: none;
+      flex: 1;
+      min-height: 150px;
+      transition: all 0.3s ease;
+    }
+
+    .text-input:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.4);
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+
+    .text-input::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    .processing-wrapper {
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-radius: 10px;
+      padding: 15px;
+      flex: 1;
+      min-height: 150px;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+
+    .processing-wrapper.active {
+      display: flex;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(255, 255, 255, 0.2);
+      border-top: 5px solid #ff7e5f;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .processing-text {
+      color: white;
+      font-size: 16px;
+      opacity: 0.8;
+    }
+
+    .action-buttons {
+      margin-top: 30px;
+    }
+
+    .submit-button {
+      width: 100%;
+      background: linear-gradient(135deg, #ff7e5f, #feb47b);
+      border: none;
+      border-radius: 25px;
+      padding: 15px;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .submit-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 126, 95, 0.4);
+    }
+
+    .submit-button:active {
+      transform: translateY(0);
+    }
+
+    .submit-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+      background: linear-gradient(135deg, #808080, #999999);
+    }
+
+    .error-message {
+      background-color: rgba(255, 126, 95, 0.2);
+      border-left: 4px solid #ff7e5f;
+      color: white;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .recording-indicator {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: #ff7e5f;
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    .recording-indicator.active {
+      display: flex;
+    }
+
+    .recording-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #ff7e5f;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .container > * {
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    @media (max-width: 320px) {
+      .voice-controls {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .voice-button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- トースト通知 -->
+  <div class="toast-notification" id="toastNotification">
+    <div class="toast-content">
+      <span class="material-symbols-outlined toast-icon">info</span>
+      <div class="toast-text">
+        <div class="toast-title">記録が終わり次第、google formにてアンケートをお願いしたいため、先ほどの画面に関して、以下のことを軽く覚えておいていただけると助かります</div>
+        <div class="toast-message">
+          <ul class="toast-list">
+            <li>✅ 自分の気持ちに合う感情があったか</li>
+            <li>✅ 迷ったり何度か画面を行き来したか</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="header">
+      <button class="back-button" onclick="history.back()">
+        <span class="material-symbols-outlined" style="font-size: 28px;">arrow_back</span>
+      </button>
+      <h2>②出来事を記録</h2>
+      <div style="width: 28px;"></div>
+    </div>
+
+    <% if @error.present? %>
+      <div class="error-message show">
+        <%= @error %>
+      </div>
+    <% end %>
+
+    <!-- 選択された感情を表示 -->
+    <% if @emotion.present? %>
+      <div class="selected-emotion">
+       <span class="material-symbols-outlined emotion-icon <%= ['嬉しい', '楽しい', '平穏', '達成感', '誇り', 'ワクワク'].include?(@emotion.emotion_name) ? 'satisfied' : 'dissatisfied' %>">
+      <%= ['嬉しい', '楽しい', '平穏', '達成感', '誇り', 'ワクワク'].include?(@emotion.emotion_name) ? 'sentiment_satisfied' : 'sentiment_dissatisfied' %>
+    </span>
+        <div class="emotion-text">
+          <div class="emotion-label">今日の感情</div>
+          <div class="emotion-value"><%= @emotion.emotion_name %></div>
+        </div>
+      </div>
+    <% end %>
+
+    <div class="record-section">
+      <h3 class="section-title"><%=@question%></h3>
+      
+      <!-- 音声録音用フォーム（非表示） -->
+      <form id="audioForm" action="/audio_upload" method="post" enctype="multipart/form-data" style="display: none;">
+         <input type="hidden" name="text" value="<%=@text%>">
+        <input type="file" id="audioFile" name="audio">
+      </form>
+      
+      <!-- テキスト解析用フォーム -->
+      <form id="diaryForm" action="<%= @filename.present? ? "/upload/#{@filename}" : "/upload" %>" method="post">
+        
+       
+        <div class="voice-controls">
+          <button type="button" class="voice-button" id="startRecordingBtn">
+            <span class="material-symbols-outlined">mic</span>
+            録音開始
+          </button>
+          <button type="button" class="voice-button" id="stopRecordingBtn" disabled>
+            <span class="material-symbols-outlined">stop_circle</span>
+            録音停止
+          </button>
+        </div>
+
+        <div class="recording-indicator" id="recordingIndicator">
+          <div class="recording-dot"></div>
+          <span>録音中...</span>
+        </div>
+
+        <!-- 音声処理中の表示 -->
+        <div class="processing-wrapper" id="processingWrapper">
+          <div class="spinner"></div>
+          <div class="processing-text">音声を文字起こし中...</div>
+        </div>
+
+        <!-- テキスト入力エリア -->
+        <div class="text-input-wrapper" id="textInputWrapper">
+          <textarea 
+            class="text-input" 
+            id="diary" 
+            name="diary" 
+            placeholder="音声で素早く記録"
+            required><%= @text if @text.present? %></textarea>
+        </div>
+
+        <div class="action-buttons">
+          <button type="submit" class="submit-button" id="submitBtn">
+            音声からストレス解析
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // トースト通知の表示（@filenameがない場合のみ）
+    <% if @filename.blank? %>
+    window.addEventListener('load', function() {
+      const toast = document.getElementById('toastNotification');
+      
+      // 500ms後に表示
+      setTimeout(() => {
+        toast.classList.add('show');
+      }, 500);
+      
+      // 10秒後に非表示
+      setTimeout(() => {
+        toast.classList.remove('show');
+      }, 30500);
+    });
+    <% end %>
+
+    // 既存のJavaScriptコード
+    let mediaRecorder;
+    let audioChunks = [];
+    const startBtn = document.getElementById('startRecordingBtn');
+    const stopBtn = document.getElementById('stopRecordingBtn');
+    const recordingIndicator = document.getElementById('recordingIndicator');
+    const diaryTextarea = document.getElementById('diary');
+    const submitBtn = document.getElementById('submitBtn');
+    const processingWrapper = document.getElementById('processingWrapper');
+    const textInputWrapper = document.getElementById('textInputWrapper');
+
+    // テキストエリアの内容に応じてsubmitボタンの状態を更新
+    diaryTextarea.addEventListener('input', function() {
+      submitBtn.disabled = this.value.trim() === '';
+    });
+
+    // 初期状態でテキストがない場合はsubmitボタンを無効化
+    if (diaryTextarea.value.trim() === '') {
+      submitBtn.disabled = true;
+    }
+
+    startBtn.addEventListener('click', function() {
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(stream => {
+          mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+          mediaRecorder.start();
+
+          mediaRecorder.addEventListener('dataavailable', event => {
+            audioChunks.push(event.data);
+          });
+
+          mediaRecorder.addEventListener('stop', async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
+            try {
+              // 処理中の表示に切り替え
+              textInputWrapper.style.display = 'none';
+              processingWrapper.classList.add('active');
+              
+              // ボタンを無効化
+              startBtn.disabled = true;
+              submitBtn.disabled = true;
+
+              // webmをwavに変換する処理
+              const wavBlob = await convertWebmToWav(audioBlob);
+              const fileName = `audio_${Date.now()}.wav`;
+              const file = new File([wavBlob], fileName, { type: 'audio/wav' });
+
+              // フォームにファイルを設定
+              const audioFileInput = document.getElementById('audioFile');
+              const dataTransfer = new DataTransfer();
+              dataTransfer.items.add(file);
+              audioFileInput.files = dataTransfer.files;
+
+              // audioChunks をクリア
+              audioChunks = [];
+
+              // 自動的に音声フォームを送信
+              document.getElementById('audioForm').submit();
+            } catch (error) {
+              console.error('音声ファイルの変換エラー:', error);
+              alert('音声の処理中にエラーが発生しました。もう一度お試しください。');
+              
+              // エラー時は表示を元に戻す
+              textInputWrapper.style.display = 'flex';
+              processingWrapper.classList.remove('active');
+              startBtn.disabled = false;
+              if (diaryTextarea.value.trim() !== '') {
+                submitBtn.disabled = false;
+              }
+            }
+          });
+
+          // ボタンと録音インジケーターの状態を更新
+          startBtn.disabled = true;
+          stopBtn.disabled = false;
+          recordingIndicator.classList.add('active');
+        })
+        .catch(error => {
+          console.error('録音開始エラー:', error);
+          alert('マイクへのアクセスが許可されていません。');
+        });
+    });
+
+    stopBtn.addEventListener('click', function() {
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+      }
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+      recordingIndicator.classList.remove('active');
+    });
+
+    // webmをwavに変換する関数
+    async function convertWebmToWav(blob) {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      const arrayBuffer = await blob.arrayBuffer();
+      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+
+      const offlineContext = new OfflineAudioContext(
+        audioBuffer.numberOfChannels, 
+        audioBuffer.length, 
+        audioBuffer.sampleRate
+      );
+      const bufferSource = offlineContext.createBufferSource();
+      bufferSource.buffer = audioBuffer;
+      bufferSource.connect(offlineContext.destination);
+      bufferSource.start(0);
+
+      const renderedBuffer = await offlineContext.startRendering();
+      return audioBufferToWav(renderedBuffer);
+    }
+
+    // AudioBufferをwav形式に変換する関数
+    function audioBufferToWav(buffer) {
+      const numOfChannels = buffer.numberOfChannels;
+      const sampleRate = buffer.sampleRate;
+      const format = 1; // PCM
+      const bitDepth = 16;
+
+      let length = buffer.length * numOfChannels * 2 + 44;
+      let outputBuffer = new ArrayBuffer(length);
+      let view = new DataView(outputBuffer);
+
+      function writeString(view, offset, string) {
+        for (let i = 0; i < string.length; i++) {
+          view.setUint8(offset + i, string.charCodeAt(i));
+        }
+      }
+
+      // RIFFヘッダ
+      writeString(view, 0, 'RIFF');
+      view.setUint32(4, 36 + buffer.length * numOfChannels * 2, true);
+      writeString(view, 8, 'WAVE');
+      writeString(view, 12, 'fmt ');
+      view.setUint32(16, 16, true);
+      view.setUint16(20, format, true);
+      view.setUint16(22, numOfChannels, true);
+      view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * numOfChannels * 2, true);
+      view.setUint16(32, numOfChannels * 2, true);
+      view.setUint16(34, bitDepth, true);
+      writeString(view, 36, 'data');
+      view.setUint32(40, buffer.length * numOfChannels * 2, true);
+
+      // PCMデータ
+      let offset = 44;
+      for (let i = 0; i < buffer.length; i++) {
+        for (let channel = 0; channel < numOfChannels; channel++) {
+          let sample = buffer.getChannelData(channel)[i];
+          let sampleInt = sample < 0 ? sample * 0x8000 : sample * 0x7FFF;
+          view.setInt16(offset, sampleInt, true);
+          offset += 2;
+        }
+      }
+
+      return new Blob([view], { type: 'audio/wav' });
+    }
+  </script>
+</body>
+</html>

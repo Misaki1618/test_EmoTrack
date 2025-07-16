@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>記録 - EmoTrack</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <style>
+    body {
+      background-color: #1f2157;
+      margin: 0;
+      font-family: sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .container {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: white;
+      margin-bottom: 30px;
+    }
+
+    .back-button {
+      background: none;
+      border: none;
+      color: white;
+      cursor: pointer;
+      padding: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .back-button:active {
+      opacity: 0.7;
+    }
+
+    .selected-emotion {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+      border-radius: 15px;
+      padding: 15px 20px;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      backdrop-filter: blur(10px);
+    }
+
+    .emotion-icon {
+      font-size: 32px;
+      color: #ff7e5f;
+    }
+
+    .emotion-text {
+      color: white;
+    }
+
+    .emotion-label {
+      font-size: 14px;
+      opacity: 0.8;
+      margin-bottom: 5px;
+    }
+
+    .emotion-value {
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .record-section {
+      background-color: #35376c;
+      border-radius: 15px;
+      padding: 25px;
+      margin-bottom: 30px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .section-title {
+      color: white;
+      font-size: 18px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+
+
+    /* 音声コントロール */
+    .voice-controls {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 25px;
+    }
+
+    .voice-button-container {
+      position: relative;
+    }
+
+    .voice-button {
+      background: linear-gradient(135deg, #ff7e5f, #feb47b);
+      border: none;
+      border-radius: 50%;
+      width: 80px;
+      height: 80px;
+      color: white;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .voice-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 126, 95, 0.4);
+    }
+
+    .voice-button:active {
+      transform: translateY(0);
+    }
+
+    .voice-button.recording {
+      background: linear-gradient(135deg, #e74c3c, #c0392b);
+      animation: pulse-shadow 2s infinite;
+    }
+
+    .voice-button.has-content {
+      background: linear-gradient(135deg, #48c774, #3ec46d);
+    }
+
+    @keyframes pulse-shadow {
+      0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+    }
+
+    .voice-button .material-symbols-outlined {
+      font-size: 32px;
+    }
+
+    .voice-button-text {
+      font-size: 12px;
+      margin-top: -4px;
+    }
+
+    .add-badge {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: #ffd700;
+      color: #1f2157;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      font-weight: bold;
+      box-shadow: 0 2px 8px rgba(255, 215, 0, 0.4);
+    }
+
+    .add-badge.show {
+      display: flex;
+    }
+
+    .voice-status {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 13px;
+      text-align: center;
+      min-height: 20px;
+    }
+
+    /* 録音インジケーター */
+    .recording-indicator {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      color: #ff7e5f;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+
+    .recording-indicator.active {
+      display: flex;
+    }
+
+    .recording-dot {
+      width: 8px;
+      height: 8px;
+      background-color: #ff7e5f;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.3; }
+      100% { opacity: 1; }
+    }
+
+    /* ヒントセクション */
+    .hints-section {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 25px;
+    }
+
+    .hints-title {
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.8);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .hints-title .material-symbols-outlined {
+      font-size: 16px;
+      color: #ffd700;
+    }
+
+    .hint-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .hint-chip {
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 15px;
+      padding: 6px 14px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.9);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .hint-chip:hover {
+      background: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    /* 音声内容表示エリア */
+    .voice-content {
+      margin-bottom: 20px;
+      display: none;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .voice-content.show {
+      display: flex;
+    }
+
+    .voice-content-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .voice-content-title {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .voice-content-title .material-symbols-outlined {
+      font-size: 18px;
+      color: #48c774;
+    }
+
+    /* 録音準備表示エリア */
+    .voice-placeholder {
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .voice-placeholder-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .voice-placeholder-title {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .voice-placeholder-title .material-symbols-outlined {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.4);
+    }
+
+    .voice-placeholder-area {
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 40px 20px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 16px;
+      line-height: 1.5;
+      text-align: center;
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    /* 文字起こし中表示エリア */
+    .voice-processing {
+      margin-bottom: 20px;
+      display: none;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .voice-processing.show {
+      display: flex;
+    }
+
+    .voice-processing-header {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+    }
+
+    .voice-processing-title {
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .voice-processing-title .material-symbols-outlined {
+      font-size: 18px;
+      color: #ff7e5f;
+    }
+
+    .voice-processing-area {
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+      min-height: 120px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      box-sizing: border-box;
+    }
+
+    .processing-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(255, 126, 95, 0.3);
+      border-top: 3px solid #ff7e5f;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .processing-text {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 16px;
+      text-align: center;
+    }
+
+
+
+    .voice-textarea {
+      background: rgba(255, 255, 255, 0.08);
+      border: 2px solid rgba(255, 255, 255, 0.15);
+      border-radius: 12px;
+      padding: 20px;
+      color: white;
+      font-size: 16px;
+      line-height: 1.5;
+      resize: none;
+      min-height: 120px;
+      transition: all 0.3s ease;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .voice-textarea:focus {
+      outline: none;
+      border-color: rgba(255, 255, 255, 0.3);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .voice-textarea::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+
+    /* アクションボタン */
+    .action-buttons {
+      margin-top: 20px;
+    }
+
+    .submit-button {
+      width: 100%;
+      background: linear-gradient(135deg, #ff7e5f, #feb47b);
+      border: none;
+      border-radius: 25px;
+      padding: 15px;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .submit-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(255, 126, 95, 0.4);
+    }
+
+    .submit-button:active {
+      transform: translateY(0);
+    }
+
+    .submit-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+      background: linear-gradient(135deg, #808080, #999999);
+    }
+
+    /* 継続案内 */
+    .continue-hint {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      display: none;
+    }
+
+    .continue-hint.show {
+      display: block;
+    }
+
+    /* アニメーション */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .container > * {
+      animation: fadeIn 0.5s ease-out;
+    }
+
+    /* レスポンシブ対応 */
+    @media (max-width: 320px) {
+      .voice-button {
+        width: 70px;
+        height: 70px;
+      }
+
+      .voice-button .material-symbols-outlined {
+        font-size: 28px;
+      }
+
+      .hint-chips {
+        gap: 6px;
+      }
+
+      .hint-chip {
+        font-size: 11px;
+        padding: 5px 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <button class="back-button" onclick="history.back()">
+        <span class="material-symbols-outlined" style="font-size: 28px;">arrow_back</span>
+      </button>
+      <h2>出来事を記録</h2>
+      <div style="width: 28px;"></div>
+    </div>
+
+    <!-- 選択された感情を表示 -->
+    <div class="selected-emotion">
+      <span class="material-symbols-outlined emotion-icon">
+        sentiment_satisfied
+      </span>
+      <div class="emotion-text">
+        <div class="emotion-label">今日の感情</div>
+        <div class="emotion-value">嬉しい</div>
+      </div>
+    </div>
+
+    <div class="record-section">
+      <h3 class="section-title">今日の出来事を教えてください</h3>
+      
+      <!-- 統合された音声コントロール -->
+      <div class="voice-controls">
+        <div class="voice-button-container">
+          <button type="button" class="voice-button" id="voiceButton">
+            <span class="material-symbols-outlined">mic</span>
+            <span class="voice-button-text">録音開始</span>
+          </button>
+          <div class="add-badge">+</div>
+        </div>
+        <div class="voice-status" id="voiceStatus">タップして録音を開始してください</div>
+      </div>
+
+      
+      <!-- ヒントセクション -->
+      <div class="hints-section">
+        <div class="hints-title">
+          <span class="material-symbols-outlined">lightbulb</span>
+          <span>こんなことを話してみては？</span>
+        </div>
+        <div class="hint-chips">
+          <div class="hint-chip">嬉しかったこと</div>
+          <div class="hint-chip">誰かに感謝したいこと</div>
+          <div class="hint-chip">達成できたこと</div>
+          <div class="hint-chip">楽しかった瞬間</div>
+        </div>
+      </div>
+
+      <!-- 録音準備表示エリア -->
+      <div class="voice-placeholder" id="voicePlaceholder">
+        <div class="voice-placeholder-header">
+          <div class="voice-placeholder-title">
+            <span class="material-symbols-outlined">record_voice_over</span>
+            <span>録音内容</span>
+          </div>
+        </div>
+        <div class="voice-placeholder-area">
+          録音するとここに記録されます
+        </div>
+      </div>
+
+      <!-- 文字起こし中表示エリア -->
+      <div class="voice-processing" id="voiceProcessing">
+        <div class="voice-processing-header">
+          <div class="voice-processing-title">
+            <span class="material-symbols-outlined">sync</span>
+            <span>文字起こし中</span>
+          </div>
+        </div>
+        <div class="voice-processing-area">
+          <div class="processing-spinner"></div>
+          <div class="processing-text">音声を文字に変換しています...</div>
+        </div>
+      </div>
+
+      <!-- 音声内容表示エリア -->
+      <div class="voice-content" id="voiceContent">
+        <div class="voice-content-header">
+          <div class="voice-content-title">
+            <span class="material-symbols-outlined">record_voice_over</span>
+            <span>録音した内容</span>
+          </div>
+        </div>
+        
+        <textarea class="voice-textarea" id="voiceTextarea" placeholder="録音内容がここに表示されます。直接編集もできます。"></textarea>
+      </div>
+
+      <!-- アクションボタン -->
+      <div class="action-buttons">
+        <button type="submit" class="submit-button" id="submitBtn">
+          音声からストレス解析
+        </button>
+       
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // UI要素の取得
+    const voiceButton = document.getElementById('voiceButton');
+    const voiceStatus = document.getElementById('voiceStatus');
+    const submitBtn = document.getElementById('submitBtn');
+
+    const addBadge = document.querySelector('.add-badge');
+    const hintChips = document.querySelectorAll('.hint-chip');
+    const voicePlaceholder = document.getElementById('voicePlaceholder');
+    const voiceProcessing = document.getElementById('voiceProcessing');
+    const voiceContent = document.getElementById('voiceContent');
+    const voiceTextarea = document.getElementById('voiceTextarea');
+
+    let isRecording = false;
+    let recordCount = 0;
+    let hasContent = false;
+
+    // 録音ボタンのトグル処理
+    voiceButton.addEventListener('click', function() {
+      isRecording = !isRecording;
+
+      if (isRecording) {
+        // 録音開始
+        this.classList.add('recording');
+        this.querySelector('.material-symbols-outlined').textContent = 'stop_circle';
+        this.querySelector('.voice-button-text').textContent = '録音停止';
+       
+        
+        if (hasContent) {
+          voiceStatus.textContent = '続きを録音中...';
+        } else {
+          voiceStatus.textContent = '話したいことを自由にお話しください';
+        }
+      } else {
+        // 録音停止 - 文字起こし処理を開始
+        this.classList.remove('recording');
+      
+        
+        // プレースホルダーを隠して文字起こし中を表示
+        voicePlaceholder.style.display = 'none';
+        voiceProcessing.classList.add('show');
+        
+        // ボタンを無効化
+        this.disabled = true;
+        voiceStatus.textContent = '文字起こし中です...';
+        
+        // 1.5秒後に文字起こし完了をシミュレート
+        setTimeout(() => {
+          recordCount++;
+          hasContent = true;
+
+          // デモ用: テキストを追加
+          if (recordCount === 1) {
+            voiceTextarea.value = '今日は仕事でプロジェクトが無事に完了しました。チームメンバーと協力して、予定より早く終わらせることができて、とても達成感を感じています。';
+          } else {
+            voiceTextarea.value += '\n\nそれから、チームメンバーとお祝いのランチに行きました。みんなで成功を分かち合えて、本当に嬉しかったです。';
+          }
+
+          // 文字起こし中を隠して音声内容を表示
+          voiceProcessing.classList.remove('show');
+          voiceContent.classList.add('show');
+
+          // ボタンを追記モードに変更
+          this.disabled = false;
+          this.classList.add('has-content');
+          this.querySelector('.material-symbols-outlined').textContent = 'add';
+          this.querySelector('.voice-button-text').textContent = '追加録音';
+          addBadge.classList.add('show');
+
+          // ステータス更新
+          voiceStatus.textContent = 'タップして続きを録音できます';
+
+          // サブミットボタンを有効化
+          submitBtn.disabled = false;
+        
+        }, 1500);
+      }
+    });
+
+    // テキストエリアの入力監視
+    voiceTextarea.addEventListener('input', function() {
+      if (this.value.trim() !== '') {
+        submitBtn.disabled = false;
+        
+        if (!hasContent) {
+          hasContent = true;
+          voiceButton.classList.add('has-content');
+          voiceButton.querySelector('.material-symbols-outlined').textContent = 'add';
+          voiceButton.querySelector('.voice-button-text').textContent = '追加録音';
+          addBadge.classList.add('show');
+          voiceStatus.textContent = '音声でさらに追加できます';
+         
+        }
+      } else {
+        submitBtn.disabled = true;
+      }
+    });
+
+    // ヒントチップのクリック処理（デモ用）
+    hintChips.forEach(chip => {
+      chip.addEventListener('click', function() {
+        const hint = this.textContent;
+        
+        // デモ用: 自動的に音声録音をシミュレート
+        if (!hasContent) {
+          // 初回 - プレースホルダーを隠す
+          voicePlaceholder.style.display = 'none';
+          voiceTextarea.value = hint;
+          voiceContent.classList.add('show');
+          
+          voiceButton.classList.add('has-content');
+          voiceButton.querySelector('.material-symbols-outlined').textContent = 'add';
+          voiceButton.querySelector('.voice-button-text').textContent = '追加録音';
+          addBadge.classList.add('show');
+          voiceStatus.textContent = '音声でさらに詳しく話せます';
+          
+          hasContent = true;
+          submitBtn.disabled = false;
+         
+        } else {
+          // 追加
+          voiceTextarea.value += '\n\n' + hint + '：';
+        }
+      });
+    });
+
+    // 初期状態
+    submitBtn.disabled = true;
+  </script>
+</body>
+</html>
