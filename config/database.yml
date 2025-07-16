@@ -1,11 +1,11 @@
-default_env: &default
-  adapter: postgresql
+adapter: postgresql
   encoding: unicode
-  database: test_emotion_db
+  pool: 5
 
 development:
   <<: *default
 
 production:
   <<: *default
+  url: <%= ENV['DATABASE_URL'] %>
  
