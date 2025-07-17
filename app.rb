@@ -310,7 +310,7 @@ get '/create' do
   
   # URLパラメータから選択された感情を取得
   @selected_emotion = params[:emotion]
-  puts "aaaaaaaaaaaaaaaaaa:#{@selected_emotion}"
+  
   # 感情のタイプを判定
   negative_emotions = ["焦り", "罪悪感", "嫌悪", "怒り", "恥", "不安", "悲しい"]
   positive_emotions = ["達成感", "平穏", "楽しい", "嬉しい","ワクワク","誇り"]
@@ -322,7 +322,7 @@ get '/create' do
   else
     nil
   end
-  puts "bbbbbbbbbbbbbbbbbb:#{@emotion_type}"
+  
   # 新しい感情記録を作成（status: "in_progress"で一時保存）
   @emotion = current_user.emotions.create(
     emotion_name: @selected_emotion,
@@ -330,7 +330,7 @@ get '/create' do
     status: "in_progress"  # 日記入力完了後に "completed" に更新
   )
   @question=""
- puts "cccccccccccccccccccc:#{@emotion}"
+ 
   session[:current_emotion_id] = @emotion.id
   
     @question = case @selected_emotion

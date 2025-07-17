@@ -30,7 +30,7 @@ end
 
 if response.is_a?(Net::HTTPSuccess)
   transcription = JSON.parse(response.body)
-  puts transcription
+  puts transcription.to_json
 else
   puts "Error: #{response.code} - #{response.body}"
 end
