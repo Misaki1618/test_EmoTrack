@@ -150,7 +150,7 @@ post '/audio_upload' do
     end
    
     output=`ruby groq.rb #{filepath}`
-    response = eval(output)
+    response = JSON.parse(output)
     @filename=filename
     if params[:text].present?
          @text=params[:text]+response["text"]
