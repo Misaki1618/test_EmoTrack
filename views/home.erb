@@ -38,6 +38,33 @@
       font-size: 18px;
     }
 
+    /* 記録追加を促すカード */
+    .add-record-prompt {
+      margin-top: 20px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      padding: 20px;
+      border-radius: 10px;
+      color: white;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .add-record-prompt:hover {
+      transform: translateY(-2px);
+    }
+
+    .add-record-prompt h3 {
+      margin: 0 0 5px 0;
+      font-size: 18px;
+    }
+
+    .add-record-prompt p {
+      margin: 0;
+      font-size: 14px;
+      opacity: 0.9;
+    }
+
     .chart-title {
       color: white;
       margin-top: 30px;
@@ -140,26 +167,89 @@
       text-decoration: none;
     }
 
+    /* 改善案1: ボタンにテキストを追加 */
     .add-button-wrapper {
       position: relative;
       top: -20px;
     }
 
-    .add-button-circle {
+    .add-button-enhanced {
       background-color: white;
-      width: 60px;
-      height: 60px;
+      padding: 10px 20px;
+      border-radius: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .add-button-enhanced:hover {
+      transform: translateY(-2px);
+    }
+
+    .add-button-enhanced span {
+      color: #35376c;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    .add-button-enhanced .material-symbols-outlined {
+      font-size: 24px;
+    }
+
+    /* 改善案2: フローティングアクションボタン */
+    .fab-container {
+      position: fixed;
+      bottom: 80px;
+      right: 20px;
+      z-index: 100;
+    }
+
+    .fab {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      width: 56px;
+      height: 56px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       border: none;
+      cursor: pointer;
+      transition: transform 0.2s;
+      position: relative;
     }
 
-    .add-button-icon {
-      font-size: 36px;
-      color: #35376c;
+    .fab:hover {
+      transform: scale(1.1);
+    }
+
+    .fab-label {
+      position: absolute;
+      right: 70px;
+      background-color: rgba(0,0,0,0.8);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 5px;
+      white-space: nowrap;
+      font-size: 14px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .fab:hover .fab-label {
+      opacity: 1;
+    }
+
+    /* 改善案3: より明確なアイコン */
+    .record-icon {
+      font-size: 28px;
+      color: white;
     }
   </style>
 </head>
@@ -179,6 +269,15 @@
         <% end %>
       </span>
     </div>
+
+    <!-- 改善案4: 記録追加を促すカード（未計測の場合のみ表示） -->
+    <% if !@emotions.present? || @emotions.order(id: :desc).first.status != "completed" || @emotions.order(id: :desc).first.created_at.in_time_zone("Asia/Tokyo").to_date != Time.now.in_time_zone('Asia/Tokyo').to_date %>
+      <div class="add-record-prompt" onclick="location.href='/emotion'">
+        <span class="material-symbols-outlined" style="font-size: 40px; margin-bottom: 10px;">edit_note</span>
+        <h3>今日の記録を追加</h3>
+        <p>タップしてストレス度を記録しましょう</p>
+      </div>
+    <% end %>
 
     <p class="chart-title">ストレスの変化（1週間）</p>
     <div class="ct-chart ct-perfect-fourth"></div>
@@ -230,13 +329,17 @@
     </div>
   </div>
 
+  <!-- 改善案2: フローティングアクションボタン（右下に固定） -->
+ 
   <div class="bottom-nav">
     <a href="/home" class="nav-icon"><span class="material-symbols-outlined" style="font-size:35px;">home</span></a>
     
+    <!-- 改善案1: テキスト付きボタン -->
     <div class="add-button-wrapper">
       <form action="/emotion" method="get">
-        <button type="submit" class="add-button-circle">
-          <span class="material-symbols-outlined add-button-icon">add</span>
+        <button type="submit" class="add-button-enhanced">
+          <span class="material-symbols-outlined">add_circle</span>
+          <span>記録する</span>
         </button>
       </form>
     </div>
