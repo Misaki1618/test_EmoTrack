@@ -270,14 +270,7 @@
       </span>
     </div>
 
-    <!-- 改善案4: 記録追加を促すカード（未計測の場合のみ表示） -->
-    <% if !@emotions.present? || @emotions.order(id: :desc).first.status != "completed" || @emotions.order(id: :desc).first.created_at.in_time_zone("Asia/Tokyo").to_date != Time.now.in_time_zone('Asia/Tokyo').to_date %>
-      <div class="add-record-prompt" onclick="location.href='/emotion'">
-        <span class="material-symbols-outlined" style="font-size: 40px; margin-bottom: 10px;">edit_note</span>
-        <h3>今日の記録を追加</h3>
-        <p>タップしてストレス度を記録しましょう</p>
-      </div>
-    <% end %>
+   
 
     <p class="chart-title">ストレスの変化（1週間）</p>
     <div class="ct-chart ct-perfect-fourth"></div>
